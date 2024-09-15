@@ -8,7 +8,7 @@ def main():
 
     server = socket.create_server(("localhost", 9092), reuse_port=True)
     server.accept() # wait for client
-    server.send(data)	# send data to client
+
 
 
 if __name__ == "__main__":
