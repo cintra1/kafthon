@@ -1,7 +1,8 @@
 import socket  # noqa: F401
 
 def create_message(data):
-    return len(data).to_bytes(4, byteorder='big') + data
+    id_bytes = data.to_bytes(4, byteorder='big')
+    return len(id_bytes).to_bytes(4, byteorder='big') + id_bytes
 
 def handle_client(conn):
     with conn:
@@ -9,8 +10,8 @@ def handle_client(conn):
         
         correlation_id = conn.recv(1024)
         correlation_id = int.from_bytes(correlation_id[8:12], byteorder='big')
-        conn.sendall(correlation_id)
-
+        conn.sendall(create_message(correlation_id))
+ 
 
 def main():
     print("Logs from your program will appear here!")
