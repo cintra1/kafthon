@@ -1,8 +1,11 @@
 import socket  # noqa: F401
 
-def create_message(data, error_code=0):
-    id_bytes = data.to_bytes(4, byteorder='big')
-    return len(id_bytes).to_bytes(4, byteorder='big') + id_bytes + error_code.to_bytes(2, byteorder='big')
+def create_message(data, error_code = None):
+    message = data.to_bytes(4, byteorder='big')
+    if error_code is None:
+        message += error_code.to_bytes(2, byteorder='big')
+
+    return len(id_bytes).to_bytes(4, byteorder='big') + message
 
 def validate_version(api_version):
     if api_version != {0, 1, 2, 3, 4}:
