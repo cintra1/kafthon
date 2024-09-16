@@ -6,8 +6,8 @@ def create_message(data):
 def handle_client(conn):
     with conn:
         print("Handling client")
-        data = 7 # conn.recv(1024)
-        conn.sendall(create_message(data))
+        conn.recv(1024)
+        conn.sendall(create_message(7))
 
 
 def main():
