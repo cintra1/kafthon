@@ -8,7 +8,7 @@ def handle_client(conn):
         print("Handling client")
         
         correlation_id = conn.recv(4)
-        conn.sendall(create_message(correlation_id))
+        conn.sendall(correlation_id)
 
 
 def main():
