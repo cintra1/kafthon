@@ -6,7 +6,7 @@ def validate_version(api_version):
 
 def create_message(data, error_code = None):
     message = data.to_bytes(4, byteorder='big')
-    if error_code is None:
+    if error_code is not None:
         message += error_code.to_bytes(2, byteorder='big')
 
     return len(id_bytes).to_bytes(4, byteorder='big') + message
