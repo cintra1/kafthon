@@ -19,7 +19,7 @@ def main():
     conn, addr = server.accept() # wait for client
     print('Connected by', addr)
 
-     with conn:
+    with conn:
         # Handle the incoming request
         handle_client(conn)
                 
