@@ -7,7 +7,8 @@ def handle_client(conn):
     with conn:
         print("Handling client")
         
-        correlation_id = conn.recv(4)
+        correlation_id = conn.recv(1024)
+        correlation_id = int.from_bytes(correlation_id[8:12], byteorder='big')
         conn.sendall(correlation_id)
 
 
