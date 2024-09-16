@@ -9,7 +9,7 @@ def handle_client(conn):
         
         correlation_id = conn.recv(4)
         conn.sendall(create_message(correlation_id))
- 
+
 
 def main():
     print("Logs from your program will appear here!")
