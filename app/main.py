@@ -1,7 +1,8 @@
 import socket  # noqa: F401
 
 def create_message(data):
-    return data.to_bytes(4, byteorder='big')
+    id_bytes = data.to_bytes(4, byteorder='big')
+    return len(id_bytes).to_bytes(4, byteorder='big') + id_bytes
 
 def handle_client(conn):
     with conn:
