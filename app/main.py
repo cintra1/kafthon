@@ -7,9 +7,9 @@ def main():
     data = data.to_bytes(4, byteorder='big')
 
     server = socket.create_server(("localhost", 9092), reuse_port=True)
-    server.accept() # wait for client
-    server.correlation_id = 7
-
+    conn, addr = server.accept() # wait for client
+    print('Connected by', addr)
+    conn.sendall(data)
 
 if __name__ == "__main__":
     main()
