@@ -7,8 +7,10 @@ def create_message(data):
 def handle_client(conn):
     with conn:
         print("Handling client")
-        conn.recv(1024)
-        conn.sendall(create_message(7))
+        
+        correlation_id = conn.recv(4)
+        correlation_id = int.from_bytes(correlation_id, byteorder='big')
+        conn.sendall(correlation_id)
 
 
 def main():
@@ -18,6 +20,7 @@ def main():
 
     server = socket.create_server(("localhost", 9092), reuse_port=True)
     conn, addr = server.accept() # wait for client
+    
     print('Connected by', addr)
 
     with conn:
