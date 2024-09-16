@@ -8,8 +8,7 @@ def main():
 
     server = socket.create_server(("localhost", 9092), reuse_port=True)
     conn, addr = server.accept() # wait for client
-    print('Connected by', addr)
-    conn.sendall(data)
+    print(7)
 
 if __name__ == "__main__":
     main()
