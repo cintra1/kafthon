@@ -4,13 +4,22 @@ def create_message(data):
     id_bytes = data.to_bytes(4, byteorder='big')
     return len(id_bytes).to_bytes(4, byteorder='big') + id_bytes
 
+def validate_version(api_version):
+    if api_version != {0, 1, 2, 3, 4}:
+        return false
+
 def handle_client(conn):
     with conn:
         print("Handling client")
         
-        correlation_id = conn.recv(1024)
-        correlation_id = int.from_bytes(correlation_id[8:12], byteorder='big')
-        conn.sendall(create_message(correlation_id))
+        req = conn.recv(1024)
+        correlation_id = int.from_bytes(req[8:12], byteorder='big')
+        api_version = int.from_bytes(req[2:4], byteorder='big')
+
+        if validate_version(api_version):
+            conn.sendall(create_message(correlation_id))
+        else:
+            conn.sendall(35)
  
 
 def main():
