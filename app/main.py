@@ -19,7 +19,7 @@ def handle_client(conn):
         if validate_version(api_version):
             conn.sendall(create_message(correlation_id))
         else:
-            conn.sendall(35)
+            conn.sendall(create_message(35))
  
 
 def main():
