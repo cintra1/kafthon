@@ -2,7 +2,7 @@ import socket  # noqa: F401
 
 def create_message(data, api_key, error_code = 0):
     message = data.to_bytes(4, byteorder='big')
-    message += api_key.to_bytes(2, byteorder='big')
+    message += int(18).to_bytes(2, byteorder='big')
     message += error_code.to_bytes(2, byteorder='big')
 
     return len(message).to_bytes(4, byteorder='big') + message
@@ -17,7 +17,7 @@ def handle_client(conn):
         api_version = int.from_bytes(req[5:7], byteorder='big')
         print("API Key:", api_key)
         print("API Version:", api_version)
-        
+
         if 0 <= api_version <= 4:
             conn.sendall(create_message(correlation_id, api_key))
         else:
