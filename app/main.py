@@ -31,21 +31,18 @@ def handle_client(conn):
         # Receive request from client
         req = conn.recv(1024)
         correlation_id = int.from_bytes(req[8:12], byteorder='big')
-        api_key = int.from_bytes(req[3:5], byteorder='big')
-        api_version = int.from_bytes(req[5:7], byteorder='big')
+        api_key = int.from_bytes(req[4:6], byteorder='big')
+        api_version = int.from_bytes(req[6:8], byteorder='big')
 
         print(f"Received API Key: {api_key}, API Version: {api_version}")
 
         # Check if the request is for API_VERSIONS (API key 18)
-        if api_key == 18:
-            if 0 <= api_version <= 4:
+        if 0 <= api_version <= 4:
                 response = create_api_versions_response(correlation_id)
-            else:
-                response = create_api_versions_response(correlation_id, 35)  # Error code for unsupported version
-                print("Unsupported API version.")
         else:
-            response = create_api_versions_response(correlation_id)  # Error code for unsupported API key
-            print("Unsupported API key.")
+            response = create_api_versions_response(correlation_id, 35)  # Error code for unsupported version
+            print("Unsupported API version.")
+        
 
         # Send response to the client
         conn.sendall(response)
