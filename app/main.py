@@ -3,12 +3,12 @@ import socket  # noqa: F401
 def create_message(correlation_id, api_key, error_code = 0):
     message = correlation_id.to_bytes(4, byteorder='big')
     message += error_code.to_bytes(2, byteorder='big')
-    message += int(1+1).to_bytes(2, byteorder='big')
+    message += int(1+1).to_bytes(1, byteorder='big')
     message += int(18).to_bytes(2, byteorder='big')
     message += int(4).to_bytes(2, byteorder='big')
     message += int(4).to_bytes(2, byteorder='big')
     message += int(0).to_bytes(2, byteorder='big')
-    message += int(0).to_bytes(2, byteorder='big')
+    message += int(0).to_bytes(4, byteorder='big')
 
     return len(message).to_bytes(4, byteorder='big') + message
 
