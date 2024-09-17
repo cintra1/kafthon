@@ -1,16 +1,25 @@
 import socket
 
-def create_api_versions_response(correlation_id, error_code=0):
-    # Correlation ID (4 bytes) + Error Code (2 bytes)
+def from_client(client: socket.socket):
+    data = client.recv(2048)
+    api_key = int.from_bytes(data[4:6], byteorder='big')
+    api_version = int.from_bytes(data[6:8], byteorder='big')
+    correlation_id = int.from_bytes(data[8:12], byteorder='big')
+    return api_key, api_version, correlation_id
+
+
+def make_response(api_key, api_version, correlation_id):
+    # Cabeçalho da resposta
     response_header = correlation_id.to_bytes(4, byteorder='big')
 
-    # API_VERSIONS (API key 18, MinVersion 0, MaxVersion 4)
-    api_key = 18
-    min_version = 0
-    max_version = 4
+    valid_api_versions = [0, 1, 2, 3, 4]
+    # Verifica se a versão da API é suportada
+    error_code = 0 if api_version in valid_api_versions else 35  # 35 para versão não suportada
+    min_version, max_version = 0, 4
     throttle_time_ms = 0
-    tag_buffer = b"\x00"
-    
+    tag_buffer = b"\x00"  # Buffer para tags adicionais
+
+    # Corpo da resposta
     response_body = (
         error_code.to_bytes(2, byteorder='big') +
         int(2).to_bytes(1, byteorder='big') +  # Número de entradas de versão
@@ -22,47 +31,27 @@ def create_api_versions_response(correlation_id, error_code=0):
         tag_buffer
     )
 
-    # Calculate and prepend the message length (4 bytes)
+    # Calcula o tamanho total da resposta
     response_length = len(response_header) + len(response_body)
-    
-    # Return the complete message
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
 
-def handle_client(conn):
-    with conn:
-        print("Handling client...")
-
-        # Receive request from client
-        req = conn.recv(2048)
-        correlation_id = int.from_bytes(req[8:12], byteorder='big')
-        api_key = int.from_bytes(req[4:6], byteorder='big')
-        api_version = int.from_bytes(req[6:8], byteorder='big')
-
-        print(f"Received API Key: {api_key}, API Version: {api_version}")
-
-        # Check if the request is for API_VERSIONS (API key 18)
-        if 0 <= api_version <= 4:
-                response = create_api_versions_response(correlation_id)
-        else:
-            response = create_api_versions_response(correlation_id, 35)  # Error code for unsupported version
-            print("Unsupported API version.")
-        
-
-        # Send response to the client
-        conn.sendall(response)
-        print("API Versions response sent.")
 
 def main():
-    print("Starting server...")
-
     server = socket.create_server(("localhost", 9092), reuse_port=True)
     print("Server listening on localhost:9092")
+    
+    client, _ = server.accept()
+    print("Client connected")
+    
+    # Extrai os valores da requisição recebida do cliente
+    api_key, api_version, correlation_id = from_client(client)
+    print(f"API Key: {api_key}, API Version: {api_version}, Correlation ID: {correlation_id}")
 
-    conn, addr = server.accept()  # Wait for client connection
-    print(f"Connected by {addr}")
+    # Envia a resposta de volta para o cliente
+    response = make_response(api_key, api_version, correlation_id)
+    client.sendall(response)
+    print("Response sent.")
 
-    # Handle client connection
-    handle_client(conn)
 
 if __name__ == "__main__":
     main()
