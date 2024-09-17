@@ -11,7 +11,7 @@ def create_api_versions_response(correlation_id, error_code=0):
     throttle_time_ms = 0
     tag_buffer = b"\x00"
     
-     response_body = (
+    response_body = (
         error_code.to_bytes(2, byteorder='big') +
         int(2).to_bytes(1, byteorder='big') +  # Número de entradas de versão
         api_key.to_bytes(2, byteorder='big') +
