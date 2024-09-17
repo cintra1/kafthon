@@ -3,8 +3,7 @@ import socket  # noqa: F401
 def create_message(data, api_key, error_code = 0):
     message = data.to_bytes(4, byteorder='big')
     message += api_key.to_bytes(2, byteorder='big')
-    if error_code is not None:
-        message += error_code.to_bytes(2, byteorder='big')
+    message += error_code.to_bytes(2, byteorder='big')
 
     return len(message).to_bytes(4, byteorder='big') + message
 
