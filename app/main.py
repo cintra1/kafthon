@@ -18,11 +18,8 @@ def handle_client(conn):
         req = conn.recv(1024)
         correlation_id = int.from_bytes(req[8:12], byteorder='big')
         api_version = int.from_bytes(req[5:7], byteorder='big')
-
-        if validate_version(api_version):
-            conn.sendall(create_message(correlation_id))
-        else:
-            conn.sendall(create_message(correlation_id, 35))
+        print("API Version: ", api_version)
+        conn.sendall(create_message(correlation_id, 35))
  
 
 def main():
