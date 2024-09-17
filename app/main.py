@@ -5,6 +5,7 @@ def create_message(data, api_key, error_code = 0):
     message += error_code.to_bytes(2, byteorder='big')
     message += api_key.to_bytes(2, byteorder='big')
     message += int(4).to_bytes(2, byteorder='big')
+    message += int(0).to_bytes(2, byteorder='big')
 
     return len(message).to_bytes(4, byteorder='big') + message
 
