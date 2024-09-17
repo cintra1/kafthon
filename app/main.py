@@ -1,26 +1,32 @@
 import socket
 
-
-def create_message(correlation_id, api_key, error_code=0):
-    # Cria uma mensagem com base no correlation_id, api_key e error_code
+def create_api_versions_response(correlation_id, error_code=0):
+    # Correlation ID (4 bytes) + Error Code (2 bytes)
     message = correlation_id.to_bytes(4, byteorder='big')
     message += error_code.to_bytes(2, byteorder='big')
-    message += int(2).to_bytes(1, byteorder='big')  # Simplificado 1+1 para 2
-    message += api_key.to_bytes(2, byteorder='big')
-    message += int(4).to_bytes(2, byteorder='big')
-    message += int(4).to_bytes(2, byteorder='big')
-    message += int(0).to_bytes(2, byteorder='big')
-    message += int(0).to_bytes(4, byteorder='big')
 
-    # Retorna a mensagem precedida pelo seu tamanho em bytes
-    return len(message).to_bytes(4, byteorder='big') + message
+    # Number of API version entries (at least 1 for API key 18)
+    message += int(1).to_bytes(4, byteorder='big')
 
+    # API_VERSIONS (API key 18, MinVersion 0, MaxVersion 4)
+    api_key = 18
+    min_version = 0
+    max_version = 4
+    message += api_key.to_bytes(2, byteorder='big')   # API Key
+    message += min_version.to_bytes(2, byteorder='big')  # Min Version
+    message += max_version.to_bytes(2, byteorder='big')  # Max Version
+
+    # Calcular e adicionar o tamanho da mensagem no início (4 bytes)
+    message_length = len(message).to_bytes(4, byteorder='big')
+    
+    # Retornar a mensagem completa
+    return message_length + message
 
 def handle_client(conn):
     with conn:
         print("Handling client...")
 
-        # Recebe e processa a requisição do cliente
+        # Recebe a requisição do cliente
         req = conn.recv(1024)
         correlation_id = int.from_bytes(req[8:12], byteorder='big')
         api_key = int.from_bytes(req[3:5], byteorder='big')
@@ -28,11 +34,14 @@ def handle_client(conn):
 
         print(f"Received API Key: {api_key}, API Version: {api_version}")
 
-        # Envia uma resposta com base na mensagem recebida
-        response = create_message(correlation_id, api_key)
-        conn.sendall(response)
-        print("Response sent.")
-
+        # Verifica se o pedido é para API_VERSIONS (API key 18)
+        if api_key == 18 and api_version == 4:
+            response = create_api_versions_response(correlation_id)
+            conn.sendall(response)
+            print("APIVersions response sent.")
+        else:
+            # Se o pedido não for o esperado, retorna um erro ou outra lógica.
+            print("Unsupported API key or version.")
 
 def main():
     print("Starting server...")
@@ -45,7 +54,6 @@ def main():
 
     # Lida com a conexão do cliente
     handle_client(conn)
-
 
 if __name__ == "__main__":
     main()
