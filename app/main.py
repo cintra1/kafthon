@@ -37,14 +37,19 @@ def handle_client(conn):
         print(f"Received API Key: {api_key}, API Version: {api_version}")
 
         # Verifica se o pedido é para API_VERSIONS (API key 18)
-        if 0 <= api_version <= 4:
-            response = create_api_versions_response(correlation_id)
-            conn.sendall(response)
-            print("APIVersions response sent.")
-        else:
+        if api_key == 18:
+            if api_version < 0 or api_version > 4:
+                response = create_api_versions_response(correlation_id)
+                conn.sendall(response)
+                print("APIVersions response sent.")
+            else:
             # Se o pedido não for o esperado, retorna um erro ou outra lógica.
             response = create_api_versions_response(correlation_id, 35)
             print("Unsupported API key or version.")
+        else:
+            response = create_api_versions_response(correlation_id)
+            conn.sendall(response)
+            print("APIVersions response sent.")
 
 def main():
     print("Starting server...")
