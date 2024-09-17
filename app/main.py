@@ -6,7 +6,7 @@ def create_api_versions_response(correlation_id, error_code=0):
     message += error_code.to_bytes(2, byteorder='big')
 
     # Number of API version entries (at least 1 for API key 18)
-    message += int(1).to_bytes(1, byteorder='big')
+    message += int(1+1).to_bytes(1, byteorder='big')
 
     # API_VERSIONS (API key 18, MinVersion 0, MaxVersion 4)
     api_key = 18
