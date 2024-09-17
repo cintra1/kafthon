@@ -15,8 +15,6 @@ def create_api_versions_response(correlation_id, error_code=0):
     message += api_key.to_bytes(2, byteorder='big')  # API Key
     message += min_version.to_bytes(2, byteorder='big')  # Min Version
     message += max_version.to_bytes(2, byteorder='big')  # Max Version
-    message += int(0).to_bytes(2, byteorder='big')  # Placeholder field
-    message += int(0).to_bytes(4, byteorder='big')  # Placeholder field
 
     # Calculate and prepend the message length (4 bytes)
     message_length = len(message).to_bytes(4, byteorder='big')
