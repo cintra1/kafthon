@@ -19,14 +19,14 @@ def handle_client(conn):
         req = conn.recv(1024)
         correlation_id = int.from_bytes(req[8:12], byteorder='big')
         api_key = int.from_bytes(req[3:5], byteorder='big')
-        api_version = int.to_bytes(req[5:7], byteorder='big')
+        api_version = int.from_bytes(req[5:7], byteorder='big')
         print("API Key:", api_key)
         print("API Version:", api_version)
 
-        if 0 <= api_version <= 4:
-            conn.sendall(create_message(correlation_id, api_key))
-        else:
-            conn.sendall(create_message(correlation_id, api_key, 35))
+        #if 0 <= api_version <= 4:
+        conn.sendall(create_message(correlation_id, api_key))
+        #else:
+            #conn.sendall(create_message(correlation_id, api_key, 35))
  
 
 def main():
