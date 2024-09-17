@@ -9,9 +9,14 @@ def create_api_versions_response(correlation_id, error_code=0):
     api_key = 18
     min_version = 0
     max_version = 4
+    throttle_time_ms = 0
+    tag_buffer = b"\x00"
     message += api_key.to_bytes(2, byteorder='big')  # API Key
     message += min_version.to_bytes(2, byteorder='big')  # Min Version
     message += max_version.to_bytes(2, byteorder='big')  # Max Version
+    message += tag_buffer
+    message += throttle_time_ms.to_bytes(4, byteorder='big')  # Throttle Time (4 bytes)
+    message += tag_buffer
 
     # Calculate and prepend the message length (4 bytes)
     message_length = len(message).to_bytes(4, byteorder='big')
