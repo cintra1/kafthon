@@ -43,6 +43,7 @@ def handle_client(conn):
             print("APIVersions response sent.")
         else:
             # Se o pedido não for o esperado, retorna um erro ou outra lógica.
+            response = create_api_versions_response(correlation_id, 35)
             print("Unsupported API key or version.")
 
 def main():
