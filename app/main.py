@@ -1,13 +1,29 @@
 import socket  # noqa: F401
 
-def create_message(data, api_key, error_code = 0):
-    message = data.to_bytes(4, byteorder='big')
-    message += error_code.to_bytes(2, byteorder='big')
-    message += int(18).to_bytes(2, byteorder='big')
-    message += int(4).to_bytes(2, byteorder='big')
-    message += int(4).to_bytes(2, byteorder='big')
-    message += int(0).to_bytes(2, byteorder='big')
-    message += int(0).to_bytes(2, byteorder='big')
+def create_message(correlation_id, api_key, error_code = 0):
+     message = Message(
+        request.correlation_id.to_bytes(4, byteorder="big"),
+        int(35).to_bytes(2, byteorder="big"),
+        # ApiVersion V3 Response | Ref.: https://kafka.apache.org/protocol.html#The_Messages_ApiVersions
+        # error_code [api_keys] throttle_time_ms TAG_BUFFER
+        # error_code INT16
+        error_code.to_bytes(2, byteorder="big") +
+        # num_api_keys => empirically VARINT of N + 1 for COMPACT_ARRAY
+        # 255 / 11111111 => 126
+        # 127 / 01111111 => 126
+        #  63 / 00111111 =>  62
+        int(1 + 1).to_bytes(1, byteorder="big") +
+        # api_key INT16
+        int(18).to_bytes(2, byteorder="big") +
+        # min_version INT16
+        int(4).to_bytes(2, byteorder="big") +
+        # max_version INT16
+        int(4).to_bytes(2, byteorder="big") +
+        # TAG_BUFFER -> empirically INT16
+        int(0).to_bytes(2, byteorder="big") +
+        # throttle_time_ms INT32
+        int(0).to_bytes(4, byteorder="big"),
+    )
 
     return len(message).to_bytes(4, byteorder='big') + message
 
