@@ -9,7 +9,7 @@ def create_message(data, error_code = None):
     if error_code is not None:
         message += error_code.to_bytes(2, byteorder='big')
 
-    return len(id_bytes).to_bytes(4, byteorder='big') + message
+    return len(message).to_bytes(4, byteorder='big') + message
 
 def handle_client(conn):
     with conn:
