@@ -50,7 +50,7 @@ def main():
     # Envia a resposta de volta para o cliente
     response = make_response(api_key, api_version, correlation_id)
     client.sendall(response)
-    print("Response sent.")
+    print("Response sent.") 
 
 
 if __name__ == "__main__":
