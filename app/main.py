@@ -11,16 +11,15 @@ def from_client(client: socket.socket):
 def make_api_version_response(api_key, api_version, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
 
-    valid_api_versions = list(range(0, 5))  # Versões válidas de 0 a 4
+    valid_api_versions = list(range(0, 5))
     error_code = 0 if api_version in valid_api_versions else 35  # 35 para versão não suportada
-    num_of_api_versions = len(valid_api_versions) if error_code == 0 else 0
-
-    min_api_version = min(valid_api_versions)
-    max_api_version = max(valid_api_versions)
+    num_of_api_versions = 3 if error_code == 0 else 0
     fetch = 1
+    min_api_version, max_api_version = 0, 4
     min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
     session_id = 0
+    response_body = 0  # Corpo da resposta
     tag_buffer = b"\x00"  # Buffer para tags adicionais
 
     response_body = (
@@ -40,7 +39,6 @@ def make_api_version_response(api_key, api_version, correlation_id):
 
     response_length = len(response_header) + len(response_body)
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
-
 
 def make_fetch_response(api_key, api_version, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
