@@ -8,15 +8,6 @@ def from_client(client: socket.socket):
     correlation_id = int.from_bytes(data[8:12], byteorder='big')
     return api_key, api_version, correlation_id
 
-def encode_varint(value):
-    """Encode an integer as a varint."""
-    result = bytearray()
-    while value > 0x7F:
-        result.append((value & 0x7F) | 0x80)  # Set the highest bit
-        value >>= 7  # Shift right by 7 bits
-    result.append(value & 0x7F)  # Append the last byte
-    return bytes(result)
-
 def make_api_version_response(api_key, api_version, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
 
@@ -43,51 +34,23 @@ def make_api_version_response(api_key, api_version, correlation_id):
 
 def make_fetch_response(api_key, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
-
+    
     fetch = 1
     error_code = 0
     min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
     session_id = 0
-
-    # Defina o tag_buffer como um exemplo de array de campos tagueados
-    tag_buffer = b"\x00\x01\x02\x03"  # Exemplo de valores, ajuste conforme necessário
+    tag_buffer = b"\x00"
 
     response_body = (
         throttle_time_ms.to_bytes(4, byteorder='big') +
         error_code.to_bytes(2, byteorder='big') +
         session_id.to_bytes(4, byteorder='big') +
-        encode_varint(fetch) +  # Use o varint para fetch
-        tag_buffer  # Inclui o buffer de tags no corpo da resposta
-    )
-
-    response_length = len(response_header) + len(response_body)
-    return response_length.to_bytes(4, byteorder='big') + response_header + response_body
-
-def make_fetch_response(api_key, correlation_id):
-    response_header = correlation_id.to_bytes(4, byteorder='big')
-
-    fetch = 1
-    error_code = 0
-    min_fetch_version, max_fetch_version = 0, 16
-    throttle_time_ms = 0
-    session_id = 0
-
-    # Defina o tag_buffer como um array de campos tagueados
-    tag_buffer = b"\x00\x01\x02\x03"  # Ajuste isso de acordo com a especificação
-    tag_buffer_length = len(tag_buffer)
-
-    response_body = (
-        throttle_time_ms.to_bytes(4, byteorder='big') +
-        error_code.to_bytes(2, byteorder='big') +
-        session_id.to_bytes(4, byteorder='big') +
-        fetch.to_bytes(2, byteorder='big') +  # Use o fetch diretamente
+        int(0).to_bytes(4, byteorder='big') +
         tag_buffer
     )
 
     response_length = len(response_header) + len(response_body)
-
-    # Corrija o comprimento total da resposta
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
 
 def handle_client(client):
