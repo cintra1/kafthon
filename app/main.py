@@ -2,32 +2,24 @@ import socket
 import threading
 
 def from_client(client: socket.socket):
-    client.settimeout(5)  # Define um timeout de 5 segundos para a leitura
-    try:
-        data = client.recv(2048)
-        if not data:
-            return None, None, None  # Retorna None se não houver dados
-        api_key = int.from_bytes(data[4:6], byteorder='big')
-        api_version = int.from_bytes(data[6:8], byteorder='big')
-        correlation_id = int.from_bytes(data[8:12], byteorder='big')
-        return api_key, api_version, correlation_id
-    except socket.timeout:
-        print("Timeout: No data received from client.")
-        return None, None, None
-    except Exception as e:
-        print(f"Error reading from client: {e}")
-        return None, None, None
+    data = client.recv(2048)
+    api_key = int.from_bytes(data[4:6], byteorder='big')
+    api_version = int.from_bytes(data[6:8], byteorder='big')
+    correlation_id = int.from_bytes(data[8:12], byteorder='big')
+    return api_key, api_version, correlation_id
 
 def make_api_version_response(api_key, api_version, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
 
-    valid_api_versions = [0, 1, 2, 3, 4]
+    valid_api_versions = list(range(0, 5))
     error_code = 0 if api_version in valid_api_versions else 35  # 35 para versão não suportada
     num_of_api_versions = 3 if error_code == 0 else 0
     fetch = 1
     min_api_version, max_api_version = 0, 4
     min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
+    session_id = 0
+    response_body = 0  # Corpo da resposta
     tag_buffer = b"\x00"  # Buffer para tags adicionais
 
     response_body = (
@@ -70,38 +62,36 @@ def make_fetch_response(api_key, api_version, correlation_id):
     response_length = len(response_header) + len(response_body)
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
 
-def handle_client(client):
-    print("Client connected")
-    
+def handle_client(client_socket, client_address):
+    print(f"Client connected at address {client_address}")
     try:
         while True:
-            api_key, api_version, correlation_id = from_client(client)
-            if api_key is None:  # Verifica se o cliente enviou algum dado ou se houve timeout
+            try:
+                data = client_socket.recv(1024)
+                print(f"Received data from {client_address}")
+                if not data:
+                    break  # Sai do loop se não houver dados
+
+                request = parse_request(data)
+                print(f"Request: {request}")
+
+                match [request["api_key"], request["api_version"]]:
+                    case [18, 3]:
+                        response = create_response(request["correlation_id"], request["api_key"], 0)
+                    case [1, 16]:
+                        response = create_response_fetch(request["correlation_id"], request["api_key"], 0)
+                    case _:
+                        response = create_response(request["correlation_id"], request["api_key"], 35)
+
+                client_socket.send(response)
+                print(f"Response sent to {client_address}")
+
+            except Exception as e:
+                print(f"Error processing request from {client_address}: {e}")
                 break
-
-            print(f"API Key: {api_key}, API Version: {api_version}, Correlation ID: {correlation_id}")
-
-            match (api_key, api_version):
-                case (18, 3):  # TODO: Alterar para v4
-                    response = make_api_version_response(api_key, api_version, correlation_id)
-                case (1, 16):
-                    response = make_fetch_response(api_key, api_version, correlation_id)
-                case _:
-                    # Resposta para versões de API desconhecidas
-                    error_code = 35  # Código de erro para versão não suportada
-                    response = (
-                        correlation_id.to_bytes(4, byteorder='big') +
-                        error_code.to_bytes(2, byteorder='big') +
-                        b"Unsupported API Version"
-                    )
-
-            client.sendall(response)
-            print("Response sent.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
     finally:
-        client.close()  # Feche a conexão quando terminar
-        print("Connection closed.")
+        print(f"Client disconnected at address {client_address}")
+        client_socket.close()
 
 def main():
     server = socket.create_server(("localhost", 9092), reuse_port=True)
@@ -110,7 +100,7 @@ def main():
     while True:
         client, _ = server.accept()
         client_thread = threading.Thread(target=handle_client, args=(client,))
-        client_thread.start()  # Inicia um novo thread para cada conexão de cliente
+        client_thread.start()  # Start a new thread for each client connection
 
 if __name__ == "__main__":
     main()
