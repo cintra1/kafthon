@@ -40,6 +40,36 @@ def make_api_version_response(api_key, api_version, correlation_id):
     response_length = len(response_header) + len(response_body)
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
 
+def make_error(api_key, api_version, correlation_id):
+    response_header = correlation_id.to_bytes(4, byteorder='big')
+    error_code = 35  
+    num_of_api_versions = 3 if error_code == 0 else 0
+    fetch = 1
+    min_api_version, max_api_version = 0, 4
+    min_fetch_version, max_fetch_version = 0, 16
+    throttle_time_ms = 0
+    session_id = 0
+    response_body = 0  # Corpo da resposta
+    tag_buffer = b"\x00"  # Buffer para tags adicionais
+
+    response_body = (
+        error_code.to_bytes(2, byteorder='big') +
+        num_of_api_versions.to_bytes(1, byteorder='big') +  # Número de entradas de versão
+        api_key.to_bytes(2, byteorder='big') +
+        min_api_version.to_bytes(2, byteorder='big') +
+        max_api_version.to_bytes(2, byteorder='big') +
+        tag_buffer +
+        fetch.to_bytes(2, byteorder='big') +
+        min_fetch_version.to_bytes(2, byteorder='big') +
+        max_fetch_version.to_bytes(2, byteorder='big') +
+        tag_buffer +
+        throttle_time_ms.to_bytes(4, byteorder='big') +
+        tag_buffer
+    )
+
+    response_length = len(response_header) + len(response_body)
+    return response_length.to_bytes(4, byteorder='big') + response_header + response_body
+
 def make_fetch_response(api_key, api_version, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
     
@@ -62,36 +92,32 @@ def make_fetch_response(api_key, api_version, correlation_id):
     response_length = len(response_header) + len(response_body)
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
 
-def handle_client(client_socket, client_address):
-    print(f"Client connected at address {client_address}")
+def handle_client(client):
+    print("Client connected")
+    
     try:
         while True:
-            try:
-                data = client_socket.recv(1024)
-                print(f"Received data from {client_address}")
-                if not data:
-                    break  # Sai do loop se não houver dados
-
-                request = parse_request(data)
-                print(f"Request: {request}")
-
-                match [request["api_key"], request["api_version"]]:
-                    case [18, 3]:
-                        response = create_response(request["correlation_id"], request["api_key"], 0)
-                    case [1, 16]:
-                        response = create_response_fetch(request["correlation_id"], request["api_key"], 0)
-                    case _:
-                        response = create_response(request["correlation_id"], request["api_key"], 35)
-
-                client_socket.send(response)
-                print(f"Response sent to {client_address}")
-
-            except Exception as e:
-                print(f"Error processing request from {client_address}: {e}")
+            api_key, api_version, correlation_id = from_client(client)
+            if api_key is None:  # Verifique se o cliente enviou algum dado
                 break
+
+            print(f"API Key: {api_key}, API Version: {api_version}, Correlation ID: {correlation_id}")
+
+            match (api_key, api_version):
+                case (18, 3):  # TODO: Alterar para v4
+                    response = make_api_version_response(api_key, api_version, correlation_id)
+                case (1, 16):
+                    response = make_fetch_response(api_key, api_version, correlation_id)
+                case _:
+                    response = make_error(api_key, api_version, correlation_id)
+
+            client.sendall(response)
+            print("Response sent.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
     finally:
-        print(f"Client disconnected at address {client_address}")
-        client_socket.close()
+        client.close()  # Feche a conexão quando terminar
+        print("Connection closed.")
 
 def main():
     server = socket.create_server(("localhost", 9092), reuse_port=True)
