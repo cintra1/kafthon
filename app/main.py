@@ -43,27 +43,27 @@ def make_api_version_response(api_key, api_version, correlation_id):
 
 def make_fetch_response(api_key, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
-    
+
     fetch = 1
     error_code = 0
     min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
     session_id = 0
-    tag_buffer = b"\x00"
 
-    # Encode the fetch value as a varint
-    fetch_varint = encode_varint(fetch)
+    # Defina o tag_buffer como um exemplo de array de campos tagueados
+    tag_buffer = b"\x00\x01\x02\x03"  # Exemplo de valores, ajuste conforme necessário
 
     response_body = (
         throttle_time_ms.to_bytes(4, byteorder='big') +
         error_code.to_bytes(2, byteorder='big') +
         session_id.to_bytes(4, byteorder='big') +
-        fetch_varint +  # Use the varint for fetch
-        tag_buffer
+        encode_varint(fetch) +  # Use o varint para fetch
+        tag_buffer  # Inclui o buffer de tags no corpo da resposta
     )
 
     response_length = len(response_header) + len(response_body)
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
+
 
 def handle_client(client):
     print("Client connected")
