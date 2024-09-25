@@ -14,24 +14,32 @@ def make_api_version_response(api_key, api_version, correlation_id):
     valid_api_versions = [0, 1, 2, 3, 4]
     error_code = 0 if api_version in valid_api_versions else 35  # 35 para versão não suportada
     num_of_api_versions = 3 if error_code == 0 else 0
+    fetch = 1
     min_api_version, max_api_version = 0, 4
+    min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
-    tag_buffer = b"\x00"
+    session_id = 0
+    response_body = 0  # Corpo da resposta
+    tag_buffer = b"\x00"  # Buffer para tags adicionais
 
-    # Adicionando um campo de buffer para evitar bytes extras
     response_body = (
         error_code.to_bytes(2, byteorder='big') +
-        num_of_api_versions.to_bytes(2, byteorder='big') +  # Verifique se isso é o que você quer
+        num_of_api_versions.to_bytes(1, byteorder='big') +  # Número de entradas de versão
         api_key.to_bytes(2, byteorder='big') +
         min_api_version.to_bytes(2, byteorder='big') +
         max_api_version.to_bytes(2, byteorder='big') +
+        tag_buffer +
+        fetch.to_bytes(2, byteorder='big') +
+        min_fetch_version.to_bytes(2, byteorder='big') +
+        max_fetch_version.to_bytes(2, byteorder='big') +
+        tag_buffer +
         throttle_time_ms.to_bytes(4, byteorder='big') +
-        tag_buffer +  # Assegure-se que o TAG_BUFFER está conforme esperado
-        b'\x00' * (8 - len(tag_buffer))  # Para garantir que o comprimento total da resposta seja correto
+        tag_buffer +
+        session_id.to_bytes(4, byteorder='big') +
+        tag_buffer
     )
 
     response_length = len(response_header) + len(response_body)
-    
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
 
 def make_fetch_response(api_key, correlation_id):
