@@ -2,24 +2,32 @@ import socket
 import threading
 
 def from_client(client: socket.socket):
-    data = client.recv(2048)
-    api_key = int.from_bytes(data[4:6], byteorder='big')
-    api_version = int.from_bytes(data[6:8], byteorder='big')
-    correlation_id = int.from_bytes(data[8:12], byteorder='big')
-    return api_key, api_version, correlation_id
+    client.settimeout(5)  # Define um timeout de 5 segundos para a leitura
+    try:
+        data = client.recv(2048)
+        if not data:
+            return None, None, None  # Retorna None se não houver dados
+        api_key = int.from_bytes(data[4:6], byteorder='big')
+        api_version = int.from_bytes(data[6:8], byteorder='big')
+        correlation_id = int.from_bytes(data[8:12], byteorder='big')
+        return api_key, api_version, correlation_id
+    except socket.timeout:
+        print("Timeout: No data received from client.")
+        return None, None, None
+    except Exception as e:
+        print(f"Error reading from client: {e}")
+        return None, None, None
 
 def make_api_version_response(api_key, api_version, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
 
-    valid_api_versions = list(range(0, 5))
+    valid_api_versions = [0, 1, 2, 3, 4]
     error_code = 0 if api_version in valid_api_versions else 35  # 35 para versão não suportada
     num_of_api_versions = 3 if error_code == 0 else 0
     fetch = 1
     min_api_version, max_api_version = 0, 4
     min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
-    session_id = 0
-    response_body = 0  # Corpo da resposta
     tag_buffer = b"\x00"  # Buffer para tags adicionais
 
     response_body = (
@@ -68,7 +76,7 @@ def handle_client(client):
     try:
         while True:
             api_key, api_version, correlation_id = from_client(client)
-            if api_key is None:  # Verifique se o cliente enviou algum dado
+            if api_key is None:  # Verifica se o cliente enviou algum dado ou se houve timeout
                 break
 
             print(f"API Key: {api_key}, API Version: {api_version}, Correlation ID: {correlation_id}")
@@ -102,7 +110,7 @@ def main():
     while True:
         client, _ = server.accept()
         client_thread = threading.Thread(target=handle_client, args=(client,))
-        client_thread.start()  # Start a new thread for each client connection
+        client_thread.start()  # Inicia um novo thread para cada conexão de cliente
 
 if __name__ == "__main__":
     main()
