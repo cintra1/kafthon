@@ -15,6 +15,7 @@ def make_api_version_response(api_key, api_version, correlation_id):
     error_code = 0 if api_version in valid_api_versions else 35  # 35 para versão não suportada
     num_of_api_versions = 3 if error_code == 0 else 0
     min_api_version, max_api_version = 0, 4
+    throttle_time_ms = 0
     tag_buffer = b"\x00"
 
     response_body = (
@@ -23,7 +24,9 @@ def make_api_version_response(api_key, api_version, correlation_id):
         api_key.to_bytes(2, byteorder='big') +
         min_api_version.to_bytes(2, byteorder='big') +
         max_api_version.to_bytes(2, byteorder='big') +
-        tag_buffer
+        tag_buffer + 
+        throttle_time_ms.to_bytes(4, byteorder='big') +
+        tag_buffer +
     )
 
     response_length = len(response_header) + len(response_body)
@@ -33,18 +36,15 @@ def make_fetch_response(api_key, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
     
     fetch = 1
+    error_code = 0
     min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
     session_id = 0
     tag_buffer = b"\x00"
 
     response_body = (
-        fetch.to_bytes(2, byteorder='big') +
-        min_fetch_version.to_bytes(2, byteorder='big') +
-        max_fetch_version.to_bytes(2, byteorder='big') +
-        tag_buffer +
         throttle_time_ms.to_bytes(4, byteorder='big') +
-        tag_buffer +
+        error_code.to_bytes(2, byteorder='big') +
         session_id.to_bytes(4, byteorder='big') +
         tag_buffer
     )
