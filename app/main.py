@@ -41,7 +41,6 @@ def make_response(api_key, api_version, correlation_id):
         throttle_time_ms.to_bytes(4, byteorder='big') +
         tag_buffer +
         session_id.to_bytes(4, byteorder='big') +
-        response_body.to_bytes(4, byteorder='big') +
         tag_buffer
     )
 
