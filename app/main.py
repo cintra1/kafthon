@@ -56,8 +56,6 @@ def make_error(api_key, api_version, correlation_id):
         error_code.to_bytes(2, byteorder='big') +
         num_of_api_versions.to_bytes(1, byteorder='big') +  # Número de entradas de versão
         api_key.to_bytes(2, byteorder='big') +
-        min_api_version.to_bytes(2, byteorder='big') +
-        max_api_version.to_bytes(2, byteorder='big') +
         tag_buffer 
     )
 
