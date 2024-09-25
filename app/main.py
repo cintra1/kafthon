@@ -46,7 +46,7 @@ def make_fetch_response(api_key, correlation_id):
         throttle_time_ms.to_bytes(4, byteorder='big') +
         error_code.to_bytes(2, byteorder='big') +
         session_id.to_bytes(4, byteorder='big') +
-        int(1).to_bytes(2, byteorder='big') +
+        fetch.to_bytes(2, byteorder='big') +
         tag_buffer
     )
 
