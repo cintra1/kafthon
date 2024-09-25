@@ -15,7 +15,7 @@ def from_client(client: socket.socket):
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
-        conn.close()  # Close the connection when done
+        client.close()  # Close the connection when done
         print("Connection closed.")
 
 
