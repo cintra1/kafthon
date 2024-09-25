@@ -17,7 +17,9 @@ def make_response(api_key, api_version, correlation_id):
     valid_api_versions = [0, 1, 2, 3, 4]
     # Verifica se a versão da API é suportada
     error_code = 0 if api_version in valid_api_versions else 35  # 35 para versão não suportada
-    min_version, max_version = 0, 4
+    fetch = 1
+    min_api_version, max_api_version = 0, 4
+    min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
     tag_buffer = b"\x00"  # Buffer para tags adicionais
 
@@ -26,9 +28,12 @@ def make_response(api_key, api_version, correlation_id):
         error_code.to_bytes(2, byteorder='big') +
         int(2).to_bytes(1, byteorder='big') +  # Número de entradas de versão
         api_key.to_bytes(2, byteorder='big') +
-        min_version.to_bytes(2, byteorder='big') +
-        max_version.to_bytes(2, byteorder='big') +
+        min_api_version.to_bytes(2, byteorder='big') +
+        max_api_version.to_bytes(2, byteorder='big') +
         tag_buffer +
+        fetch.to_bytes(2, byteorder='big') +
+        mix_fetch_version.to_bytes(2, byteorder='big') +
+        max_fetch_version.to_bytes(2, byteorder='big') +
         throttle_time_ms.to_bytes(4, byteorder='big') +
         tag_buffer
     )
