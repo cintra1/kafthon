@@ -7,11 +7,16 @@ def from_client(client: socket.socket):
             api_key = int.from_bytes(data[4:6], byteorder='big')
             api_version = int.from_bytes(data[6:8], byteorder='big')
             correlation_id = int.from_bytes(data[8:12], byteorder='big')
-            
+
             if not data:
                 return None
             else:
                 return api_key, api_version, correlation_id
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        conn.close()  # Close the connection when done
+        print("Connection closed.")
 
 
 def make_response(api_key, api_version, correlation_id):
