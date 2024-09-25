@@ -40,10 +40,11 @@ def make_api_version_response(api_key, api_version, correlation_id):
     response_length = len(response_header) + len(response_body)
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
 
-def make_fetch_response(api_key, correlation_id):
+def make_fetch_response(api_key, api_version, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
     
-    error_code = 0
+    valid_api_versions = list(range(0, 17))
+    error_code = 0 if api_version in valid_api_versions else 35  # 35 para versão não suportada
     fetch = 1
     min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
@@ -75,7 +76,7 @@ def handle_client(client):
             if api_version in [0, 1, 2, 3, 4]:
                 response = make_api_version_response(api_key, api_version, correlation_id)
             else:
-                response = make_fetch_response(api_key, correlation_id)
+                response = make_fetch_response(api_key, api_version, correlation_id)
 
             client.sendall(response)
             print("Response sent.")
