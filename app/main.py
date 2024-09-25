@@ -54,7 +54,7 @@ def make_error(api_key, api_version, correlation_id):
 
     response_body = (
         error_code.to_bytes(2, byteorder='big') +
-        num_of_api_versions.to_bytes(1, byteorder='big') +  # Número de entradas de versão
+        num_of_api_versions.to_bytes(2, byteorder='big') +  # Número de entradas de versão
         api_key.to_bytes(2, byteorder='big') +
         tag_buffer 
     )
