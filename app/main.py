@@ -85,13 +85,12 @@ def handle_client(client):
 
             print(f"API Key: {api_key}, API Version: {api_version}, Correlation ID: {correlation_id}")
 
-            match (api_key, api_version):
-                case (18, [1,2,3,4,5]):  # TODO: Alterar para v4
-                    response = make_api_version_response(api_key, api_version, correlation_id)
-                case (1, 16):
-                    response = make_fetch_response(api_key, api_version, correlation_id)
-                case _:
-                    response = make_error(api_key, api_version, correlation_id)
+            if api_key == 18 and api_version in [1, 2, 3, 4, 5]:  # Alterado para usar if
+                response = make_api_version_response(api_key, api_version, correlation_id)
+            elif api_key == 1 and api_version == 16:
+                response = make_fetch_response(api_key, api_version, correlation_id)
+            else:
+                response = make_error(api_key, api_version, correlation_id)
 
             client.sendall(response)
             print("Response sent.")
