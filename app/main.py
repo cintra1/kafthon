@@ -18,24 +18,21 @@ def make_api_version_response(api_key, api_version, correlation_id):
     throttle_time_ms = 0
     tag_buffer = b"\x00"
 
-    # Corpo da resposta
+    # Adicionando um campo de buffer para evitar bytes extras
     response_body = (
         error_code.to_bytes(2, byteorder='big') +
-        num_of_api_versions.to_bytes(2, byteorder='big') +  # Alterado para 2 bytes
+        num_of_api_versions.to_bytes(2, byteorder='big') +  # Verifique se isso é o que você quer
         api_key.to_bytes(2, byteorder='big') +
         min_api_version.to_bytes(2, byteorder='big') +
         max_api_version.to_bytes(2, byteorder='big') +
-        tag_buffer +
         throttle_time_ms.to_bytes(4, byteorder='big') +
-        tag_buffer
+        tag_buffer +  # Assegure-se que o TAG_BUFFER está conforme esperado
+        b'\x00' * (8 - len(tag_buffer))  # Para garantir que o comprimento total da resposta seja correto
     )
 
     response_length = len(response_header) + len(response_body)
-    # Debugging: Mostra os comprimentos e bytes hexadecimais
-    print(f"API Version Response Length: {response_length}, Header: {response_header.hex()}, Body: {response_body.hex()}")
     
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
-
 
 def make_fetch_response(api_key, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
