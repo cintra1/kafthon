@@ -3,6 +3,8 @@ import threading
 
 def from_client(client: socket.socket):
     data = client.recv(2048)
+    if not data:  # Se não houver dados, retornar None
+        return None, None, None
     api_key = int.from_bytes(data[4:6], byteorder='big')
     api_version = int.from_bytes(data[6:8], byteorder='big')
     correlation_id = int.from_bytes(data[8:12], byteorder='big')
@@ -19,7 +21,6 @@ def make_api_version_response(api_key, api_version, correlation_id):
     min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
     session_id = 0
-    response_body = 0  # Corpo da resposta
     tag_buffer = b"\x00"  # Buffer para tags adicionais
 
     response_body = (
@@ -43,20 +44,10 @@ def make_api_version_response(api_key, api_version, correlation_id):
 def make_error(api_key, api_version, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
     error_code = 35  
-    num_of_api_versions = 3 if error_code == 0 else 0
-    fetch = 1
-    min_api_version, max_api_version = 0, 4
-    min_fetch_version, max_fetch_version = 0, 16
-    throttle_time_ms = 0
-    session_id = 0
-    response_body = 0  # Corpo da resposta
-    tag_buffer = b"\x00"  # Buffer para tags adicionais
-
     response_body = (
         error_code.to_bytes(2, byteorder='big') +
-        num_of_api_versions.to_bytes(2, byteorder='big') +  # Número de entradas de versão
         api_key.to_bytes(2, byteorder='big') +
-        tag_buffer 
+        b"\x00"  # Placeholder for tag buffer
     )
 
     response_length = len(response_header) + len(response_body)
@@ -68,7 +59,6 @@ def make_fetch_response(api_key, api_version, correlation_id):
     valid_api_versions = list(range(0, 17))
     error_code = 0 if api_version in valid_api_versions else 35  # 35 para versão não suportada
     fetch = 1
-    min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
     session_id = 0
     tag_buffer = b"\x00"
@@ -91,6 +81,7 @@ def handle_client(client):
         while True:
             api_key, api_version, correlation_id = from_client(client)
             if api_key is None:  # Verifique se o cliente enviou algum dado
+                print("No data received, closing connection.")
                 break
 
             print(f"API Key: {api_key}, API Version: {api_version}, Correlation ID: {correlation_id}")
@@ -116,7 +107,8 @@ def main():
     print("Server listening on localhost:9092")
     
     while True:
-        client, _ = server.accept()
+        client, client_address = server.accept()
+        print(f"Accepted connection from {client_address}")
         client_thread = threading.Thread(target=handle_client, args=(client,))
         client_thread.start()  # Start a new thread for each client connection
 
