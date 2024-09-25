@@ -37,10 +37,11 @@ def make_response(api_key, api_version, correlation_id):
         fetch.to_bytes(2, byteorder='big') +
         min_fetch_version.to_bytes(2, byteorder='big') +
         max_fetch_version.to_bytes(2, byteorder='big') +
-        session_id.to_bytes(4, byteorder='big') +
-        response_body +
         tag_buffer +
         throttle_time_ms.to_bytes(4, byteorder='big') +
+        tag_buffer +
+        session_id.to_bytes(4, byteorder='big') +
+        response_body +
         tag_buffer
     )
 
