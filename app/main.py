@@ -68,24 +68,26 @@ def handle_client(client):
     try:
         while True:
             api_key, api_version, correlation_id = from_client(client)
-            if api_key is None:  # Check if the client sent any data
+            if api_key is None:  # Verifique se o cliente enviou algum dado
                 break
 
             print(f"API Key: {api_key}, API Version: {api_version}, Correlation ID: {correlation_id}")
 
-            if api_key == 18 and api_version == 3:
-                response = make_api_version_response(api_key, api_version, correlation_id)
-            elif api_key == 1 and api_version == 16:
-                response = make_fetch_response(api_key, api_version, correlation_id)
-            else:
-                response = b""
+            match (api_key, api_version):
+                case (18, 3):  # TODO: Alterar para v4
+                    response = make_api_version_response(api_key, api_version, correlation_id)
+                case (1, 16):
+                    response = make_fetch_response(api_key, api_version, correlation_id)
+                case _:
+                    # Resposta para versões de API desconhecidas
+                    response = UnknownAPIVersionHandler().handle((api_key, api_version))
 
             client.sendall(response)
             print("Response sent.")
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
-        client.close()  # Close the connection when done
+        client.close()  # Feche a conexão quando terminar
         print("Connection closed.")
 
 def main():
