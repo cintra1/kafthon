@@ -44,7 +44,8 @@ def make_fetch_response(api_key, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
     
     fetch = 1
-    error_code = 0
+    valid_api_versions = [0, 1, 2, 3, 4]
+    error_code = 0 if api_version in valid_api_versions else 35
     min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
     session_id = 0
