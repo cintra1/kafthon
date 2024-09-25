@@ -23,7 +23,7 @@ def make_response(api_key, api_version, correlation_id):
     min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
     session_id = 0
-    response_body = b""  # Corpo da resposta
+    response_body = 0  # Corpo da resposta
     tag_buffer = b"\x00"  # Buffer para tags adicionais
 
     # Corpo da resposta
@@ -41,7 +41,7 @@ def make_response(api_key, api_version, correlation_id):
         throttle_time_ms.to_bytes(4, byteorder='big') +
         tag_buffer +
         session_id.to_bytes(4, byteorder='big') +
-        response_body +
+        response_body.to_bytes(4, byteorder='big') +
         tag_buffer
     )
 
