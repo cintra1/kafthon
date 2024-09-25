@@ -37,22 +37,34 @@ def make_response(api_key, api_version, correlation_id):
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
 
 
+def handle_client(client):
+    print("Client connected")
+    
+    try:
+        while True:
+            api_key, api_version, correlation_id = from_client(client)
+            if api_key is None:  # Check if the client sent any data
+                break
+
+            print(f"API Key: {api_key}, API Version: {api_version}, Correlation ID: {correlation_id}")
+
+            response = make_response(api_key, api_version, correlation_id)
+            client.sendall(response)
+            print("Response sent.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        client.close()  # Close the connection when done
+        print("Connection closed.")
+
 def main():
     server = socket.create_server(("localhost", 9092), reuse_port=True)
     print("Server listening on localhost:9092")
     
-    client, _ = server.accept()
-    print("Client connected")
-    
     while True:
-        # Extrai os valores da requisição recebida do cliente
-        api_key, api_version, correlation_id = from_client(client)
-        print(f"API Key: {api_key}, API Version: {api_version}, Correlation ID: {correlation_id}")
-
-        # Envia a resposta de volta para o cliente
-        response = make_response(api_key, api_version, correlation_id)
-        client.sendall(response)
-        print("Response sent.")
+        client, _ = server.accept()
+        client_thread = threading.Thread(target=handle_client, args=(client,))
+        client_thread.start()  # Start a new thread for each client connection
 
 
 if __name__ == "__main__":
