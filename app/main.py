@@ -1,11 +1,17 @@
 import socket
 
 def from_client(client: socket.socket):
-    data = client.recv(2048)
-    api_key = int.from_bytes(data[4:6], byteorder='big')
-    api_version = int.from_bytes(data[6:8], byteorder='big')
-    correlation_id = int.from_bytes(data[8:12], byteorder='big')
-    return api_key, api_version, correlation_id
+    try:
+        while True:
+            data = client.recv(2048)
+            api_key = int.from_bytes(data[4:6], byteorder='big')
+            api_version = int.from_bytes(data[6:8], byteorder='big')
+            correlation_id = int.from_bytes(data[8:12], byteorder='big')
+            
+            if not data:
+                return None
+            else:
+                return api_key, api_version, correlation_id
 
 
 def make_response(api_key, api_version, correlation_id):
@@ -50,7 +56,7 @@ def main():
     # Envia a resposta de volta para o cliente
     response = make_response(api_key, api_version, correlation_id)
     client.sendall(response)
-    print("Response sent.") 
+    print("Response sent.")
 
 
 if __name__ == "__main__":
