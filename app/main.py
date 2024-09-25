@@ -26,7 +26,7 @@ def make_api_version_response(api_key, api_version, correlation_id):
         max_api_version.to_bytes(2, byteorder='big') +
         tag_buffer + 
         throttle_time_ms.to_bytes(4, byteorder='big') +
-        tag_buffer +
+        tag_buffer
     )
 
     response_length = len(response_header) + len(response_body)
