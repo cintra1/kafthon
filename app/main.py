@@ -34,8 +34,6 @@ def make_api_version_response(api_key, api_version, correlation_id):
         max_fetch_version.to_bytes(2, byteorder='big') +
         tag_buffer +
         throttle_time_ms.to_bytes(4, byteorder='big') +
-        tag_buffer +
-        session_id.to_bytes(4, byteorder='big') +
         tag_buffer
     )
 
