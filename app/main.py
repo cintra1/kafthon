@@ -78,7 +78,7 @@ def handle_client(client):
             elif api_key == 1 and api_version == 16:
                 response = make_fetch_response(api_key, api_version, correlation_id)
             else:
-                response = b"\x
+                response = b""
 
             client.sendall(response)
             print("Response sent.")
