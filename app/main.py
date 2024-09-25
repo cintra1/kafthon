@@ -26,7 +26,7 @@ def make_response(api_key, api_version, correlation_id):
     # Corpo da resposta
     response_body = (
         error_code.to_bytes(2, byteorder='big') +
-        int(2).to_bytes(1, byteorder='big') +  # Número de entradas de versão
+        int(3).to_bytes(1, byteorder='big') +  # Número de entradas de versão
         api_key.to_bytes(2, byteorder='big') +
         min_api_version.to_bytes(2, byteorder='big') +
         max_api_version.to_bytes(2, byteorder='big') +
@@ -34,6 +34,7 @@ def make_response(api_key, api_version, correlation_id):
         fetch.to_bytes(2, byteorder='big') +
         min_fetch_version.to_bytes(2, byteorder='big') +
         max_fetch_version.to_bytes(2, byteorder='big') +
+        tag_buffer +
         throttle_time_ms.to_bytes(4, byteorder='big') +
         tag_buffer
     )
