@@ -17,6 +17,7 @@ def make_response(api_key, api_version, correlation_id):
     valid_api_versions = [0, 1, 2, 3, 4]
     # Verifica se a versão da API é suportada
     error_code = 0 if api_version in valid_api_versions else 35  # 35 para versão não suportada
+    num_of_api_versions = 3 if error_code == 0 else 0
     fetch = 1
     min_api_version, max_api_version = 0, 4
     min_fetch_version, max_fetch_version = 0, 16
@@ -26,7 +27,7 @@ def make_response(api_key, api_version, correlation_id):
     # Corpo da resposta
     response_body = (
         error_code.to_bytes(2, byteorder='big') +
-        int(3).to_bytes(1, byteorder='big') +  # Número de entradas de versão
+        num_of_api_versions.to_bytes(1, byteorder='big') +  # Número de entradas de versão
         api_key.to_bytes(2, byteorder='big') +
         min_api_version.to_bytes(2, byteorder='big') +
         max_api_version.to_bytes(2, byteorder='big') +
