@@ -8,6 +8,15 @@ def from_client(client: socket.socket):
     correlation_id = int.from_bytes(data[8:12], byteorder='big')
     return api_key, api_version, correlation_id
 
+def encode_varint(value):
+    """Encode an integer as a varint."""
+    result = bytearray()
+    while value > 0x7F:
+        result.append((value & 0x7F) | 0x80)  # Set the highest bit
+        value >>= 7  # Shift right by 7 bits
+    result.append(value & 0x7F)  # Append the last byte
+    return bytes(result)
+
 def make_api_version_response(api_key, api_version, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
 
@@ -42,10 +51,14 @@ def make_fetch_response(api_key, correlation_id):
     session_id = 0
     tag_buffer = b"\x00"
 
+    # Encode the fetch value as a varint
+    fetch_varint = encode_varint(fetch)
+
     response_body = (
         throttle_time_ms.to_bytes(4, byteorder='big') +
         error_code.to_bytes(2, byteorder='big') +
         session_id.to_bytes(4, byteorder='big') +
+        fetch_varint +  # Use the varint for fetch
         tag_buffer
     )
 
