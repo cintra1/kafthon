@@ -80,7 +80,12 @@ def handle_client(client):
                     response = make_fetch_response(api_key, api_version, correlation_id)
                 case _:
                     # Resposta para versões de API desconhecidas
-                    response = UnknownAPIVersionHandler().handle((api_key, api_version))
+                    error_code = 35  # Código de erro para versão não suportada
+                    response = (
+                        correlation_id.to_bytes(4, byteorder='big') +
+                        error_code.to_bytes(2, byteorder='big') +
+                        b"Unsupported API Version"
+                    )
 
             client.sendall(response)
             print("Response sent.")
