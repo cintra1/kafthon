@@ -43,7 +43,7 @@ def make_api_version_response(api_key, api_version, correlation_id):
 def make_fetch_response(api_key, correlation_id):
     response_header = correlation_id.to_bytes(4, byteorder='big')
     
-    error_code = 35
+    error_code = 0
     fetch = 1
     min_fetch_version, max_fetch_version = 0, 16
     throttle_time_ms = 0
