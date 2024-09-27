@@ -35,21 +35,29 @@ def make_fetch_response(api_key, api_version, correlation_id, topic_id):
     partition_index = 0
     partition_error_code = 100  # UNKNOWN_TOPIC para o teste
 
+    # Placeholder de offsets
+    high_watermark_offset = 0
+    last_stable_offset = 0
+    log_start_offset = 0
+
     # Resposta do corpo para o fetch (v16)
     response_body = (
         throttle_time_ms.to_bytes(4, byteorder='big') +   # Throttle time
         error_code.to_bytes(2, byteorder='big') +         # Error code
         session_id.to_bytes(4, byteorder='big') +         # Session ID
-        (1).to_bytes(4, byteorder='big') +               # Respostas (1 tópico)
+        (1).to_bytes(4, byteorder='big') +               # Número de tópicos (1 tópico)
         topic_id.to_bytes(4, byteorder='big') +           # Topic ID
         (1).to_bytes(4, byteorder='big') +               # Número de partições (1 partição)
         partition_index.to_bytes(4, byteorder='big') +    # Partition index (sempre 0)
         partition_error_code.to_bytes(2, byteorder='big') +  # Error code (100 - UNKNOWN_TOPIC)
-        (0).to_bytes(8, byteorder='big')  # Placeholder para offsets (Exemplo de 8 bytes)
+        high_watermark_offset.to_bytes(8, byteorder='big') +  # High watermark offset
+        last_stable_offset.to_bytes(8, byteorder='big') +  # Last stable offset
+        log_start_offset.to_bytes(8, byteorder='big')     # Log start offset
     )
 
     response_length = len(response_header) + len(response_body)
     return response_length.to_bytes(4, byteorder='big') + response_header + response_body
+
 
 def handle_client(client):
     print("Client connected")
